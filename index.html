@@ -2,73 +2,927 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>Herbal System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>ระบบยาสมุนไพร — รพ.สต. บ้านโนนยาง</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<script>
+const SUPABASE_URL="https://yazocgdmovtlyvaqupkm.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlhem9jZ2Rtb3Z0bHl2YXF1cGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDA3MjQsImV4cCI6MjA5ODU3NjcyNH0.CFky0oKlzfK1ANPmRjQBpWC8JGfWRec9OKimzwbyEjg";
+</script>
 <style>
-body { font-family: sans-serif; background:#f5f5f5; }
-.box { width:320px; margin:80px auto; padding:20px; background:white; border-radius:10px; }
-input, button { width:100%; padding:10px; margin-top:10px; }
-button { background:green; color:white; border:none; cursor:pointer; }
-.hidden { display:none; }
+:root{
+  --g50:#E1F5EE;--g100:#9FE1CB;--g200:#5DCAA5;--g400:#1D9E75;--g600:#0F6E56;--g800:#085041;
+  --a50:#FAEEDA;--a600:#854F0B;
+  --r50:#FCEBEB;--r600:#A32D2D;
+  --b50:#E6F1FB;--b600:#185FA5;
+  --gray50:#F1EFE8;--gray100:#D3D1C7;--gray400:#888780;--gray600:#5F5E5A;
+  --bg:#F5F6F7;--card:#fff;--border:#E0DED8;
+  --text:#1A1A18;--text2:#5F5E5A;--text3:#888780;
+  --r:8px;--rl:12px;--font:'Sarabun',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;}
+
+/* SETUP */
+.setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--g800) 0%,var(--g600) 100%);}
+.setup-card{background:#fff;border-radius:20px;padding:36px;max-width:540px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.setup-logo{font-size:48px;margin-bottom:12px;}
+.setup-card h1{font-size:22px;font-weight:700;margin-bottom:6px;color:var(--g800);}
+.setup-card p{font-size:14px;color:var(--text2);margin-bottom:24px;line-height:1.7;}
+.step-box{background:var(--g50);border:1px solid var(--g100);border-radius:var(--rl);padding:16px 20px;margin-bottom:20px;}
+.step-box h3{font-size:13px;font-weight:700;color:var(--g800);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.step-box ol{padding-left:18px;}
+.step-box li{font-size:13px;color:var(--text2);line-height:2;padding-left:4px;}
+.step-box li a{color:var(--b600);font-weight:600;text-decoration:none;}
+.step-box li a:hover{text-decoration:underline;}
+.step-box code{background:#fff;border:1px solid var(--g200);padding:1px 7px;border-radius:4px;font-size:12px;font-family:monospace;color:var(--g600);}
+.field-group{margin-bottom:14px;}
+.field-group label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.field-group input,.field-group select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:var(--font);color:var(--text);transition:border-color .15s;}
+.field-group input:focus,.field-group select:focus{outline:none;border-color:var(--g400);}
+.field-hint{font-size:11px;color:var(--text3);margin-top:4px;}
+.btn-main{width:100%;background:var(--g600);color:#fff;border:none;border-radius:var(--r);padding:13px;cursor:pointer;font-size:15px;font-family:var(--font);font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s;margin-bottom:10px;}
+.btn-main:hover{background:var(--g800);}
+.btn-demo{width:100%;background:var(--gray50);color:var(--text2);border:1.5px solid var(--border);border-radius:var(--r);padding:11px;cursor:pointer;font-size:14px;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+.btn-demo:hover{border-color:var(--g400);color:var(--g600);}
+
+/* SQL BOX */
+.sql-box{background:#1e1e1e;border-radius:var(--r);padding:14px 16px;margin-top:8px;overflow-x:auto;}
+.sql-box pre{color:#9FE1CB;font-size:11px;font-family:monospace;white-space:pre-wrap;line-height:1.6;}
+.copy-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:11px;font-family:var(--font);margin-top:8px;}
+.copy-btn:hover{background:rgba(255,255,255,.2);}
+
+/* HEADER */
+.header{background:var(--g600);color:#fff;}
+.header-top{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;flex-wrap:wrap;gap:8px;}
+.header-logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;}
+.header-title{font-size:17px;font-weight:700;}
+.header-sub{font-size:12px;opacity:.75;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sync-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:99px;padding:5px 12px;font-size:12px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#9FE1CB;}
+.sync-dot.off{background:rgba(255,255,255,.3);}
+.sync-dot.err{background:#F09595;}
+.sync-dot.pulse{animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:var(--r);padding:7px 13px;cursor:pointer;font-size:13px;font-family:var(--font);display:flex;align-items:center;gap:5px;transition:background .15s;white-space:nowrap;}
+.hbtn:hover{background:rgba(255,255,255,.28);}
+
+/* PERIOD BAR */
+.period-bar{background:var(--g800);padding:9px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pbar-label{color:rgba(255,255,255,.65);font-size:12px;white-space:nowrap;}
+.period-ctrl{display:flex;align-items:center;gap:5px;}
+.pbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.pbtn:hover{background:rgba(255,255,255,.25);}
+.pdisplay{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:5px 16px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;min-width:170px;text-align:center;font-family:var(--font);}
+.view-badges{display:flex;gap:6px;margin-left:auto;}
+.vbadge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);border-radius:99px;padding:3px 12px;font-size:11px;cursor:pointer;}
+.vbadge.on{background:rgba(255,255,255,.9);color:var(--g800);font-weight:700;}
+
+/* MAIN */
+.main{max-width:1300px;margin:0 auto;padding:20px;}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);padding:14px 16px;}
+.stat .lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+.stat .val{font-size:24px;font-weight:700;}
+.stat .sub{font-size:11px;margin-top:3px;}
+.cg{color:var(--g600);}.ca{color:var(--a600);}.cr{color:var(--r600);}.cb{color:var(--b600);}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.srch{position:relative;flex:1;min-width:180px;}
+.srch input{width:100%;padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--font);background:var(--card);color:var(--text);}
+.srch input:focus{outline:none;border-color:var(--g400);}
+.srch i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);}
+.fsel{padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--font);background:var(--card);color:var(--text);cursor:pointer;}
+.tbtn{padding:8px 14px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-family:var(--font);background:var(--card);color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.tbtn:hover{border-color:var(--g400);color:var(--g600);}
+.tbtn.green{background:var(--g600);color:#fff;border-color:var(--g600);font-weight:600;}
+.tbtn.green:hover{background:var(--g800);}
+.tbtn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:900px;}
+thead th{background:var(--gray50);color:var(--text2);font-size:12px;font-weight:600;padding:10px 8px;border-bottom:1px solid var(--border);text-align:center;white-space:nowrap;}
+thead th.tl{text-align:left;padding-left:12px;}
+.th-in{background:var(--g50);border:1px solid var(--g100);border-radius:4px;padding:2px 6px;font-size:11px;font-family:var(--font);color:var(--g800);width:72px;text-align:center;margin-top:3px;}
+.th-in:focus{outline:none;border-color:var(--g400);}
+.th-in:disabled{opacity:.5;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--gray50);}
+td{padding:6px 8px;vertical-align:middle;text-align:center;font-size:13px;}
+td.tl{text-align:left;padding-left:12px;}
+.rno{font-size:12px;color:var(--text3);}
+.cin{width:100%;background:transparent;border:none;border-bottom:1.5px solid transparent;text-align:center;color:var(--text);font-size:13px;padding:3px 4px;font-family:var(--font);border-radius:2px;transition:all .15s;}
+.cin:focus{outline:none;border-bottom-color:var(--g400);background:var(--g50);}
+.cin:disabled{color:var(--text3);cursor:not-allowed;}
+.nin{width:100%;background:transparent;border:none;border-bottom:1.5px solid transparent;color:var(--text);font-size:13px;padding:3px 4px;font-family:var(--font);transition:all .15s;}
+.nin:focus{outline:none;border-bottom-color:var(--g400);background:var(--g50);}
+.nin:disabled{color:var(--text3);}
+.usel{background:transparent;border:none;font-size:12px;color:var(--text2);font-family:var(--font);cursor:pointer;padding:2px 4px;}
+.usel:disabled{cursor:not-allowed;}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:99px;font-weight:600;}
+.bok{background:var(--g50);color:var(--g600);}
+.blow{background:var(--a50);color:var(--a600);}
+.bout{background:var(--r50);color:var(--r600);}
+.bal-ok{color:var(--g600);font-weight:700;}
+.bal-low{color:var(--a600);font-weight:700;}
+.bal-out{color:var(--r600);font-weight:700;}
+.dbtn{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;border-radius:6px;font-size:16px;transition:all .15s;}
+.dbtn:hover{background:var(--r50);color:var(--r600);}
+.dbtn:disabled{opacity:.3;cursor:not-allowed;}
+.detail-btn{background:none;border:none;cursor:pointer;color:var(--b600);padding:5px;border-radius:6px;font-size:16px;transition:all .15s;}
+.detail-btn:hover{background:var(--b50);}
+tfoot td{background:var(--g50);font-weight:700;color:var(--g800);padding:9px 8px;border-top:2px solid var(--g100);}
+tfoot td.tl{text-align:left;padding-left:12px;}
+.saving{opacity:.5;}
+
+/* HISTORY */
+.hpanel{background:var(--card);border:1px solid var(--border);border-radius:var(--rl);margin-top:20px;overflow:hidden;}
+.hpanel-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
+.hpanel-head h3{font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.htog{font-size:18px;color:var(--text3);transition:transform .2s;}
+.htog.open{transform:rotate(180deg);}
+.hbody{display:none;padding:16px;}
+.hbody.open{display:block;}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.hitem{border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;transition:all .15s;}
+.hitem:hover,.hitem.cur{border-color:var(--g400);background:var(--g50);}
+.hitem .hip{font-size:13px;font-weight:600;}
+.hitem .hic{font-size:11px;color:var(--text3);margin-top:2px;}
+.hitem .hit{font-size:12px;color:var(--g600);font-weight:600;margin-top:2px;}
+
+/* DETAIL MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border-radius:var(--rl);padding:0;width:100%;max-width:680px;margin:auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);background:var(--g50);}
+.modal-head h2{font-size:16px;font-weight:700;color:var(--g800);}
+.mclose{background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);padding:4px;border-radius:6px;}
+.mclose:hover{background:var(--border);color:var(--text);}
+.modal-body{padding:20px;display:grid;gap:16px;}
+.modal-grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.mfield label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;}
+.mfield input,.mfield textarea,.mfield select{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:var(--font);color:var(--text);transition:border-color .15s;}
+.mfield input:focus,.mfield textarea:focus,.mfield select:focus{outline:none;border-color:var(--g400);}
+.mfield textarea{resize:vertical;min-height:90px;line-height:1.6;}
+.mfield input:disabled,.mfield textarea:disabled,.mfield select:disabled{background:var(--gray50);color:var(--text3);cursor:not-allowed;}
+
+/* POSTER UPLOAD */
+.poster-area{border:2px dashed var(--border);border-radius:var(--rl);padding:20px;text-align:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;min-height:160px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;}
+.poster-area:hover{border-color:var(--g400);background:var(--g50);}
+.poster-area.has-img{border-style:solid;padding:0;}
+.poster-area img{width:100%;max-height:280px;object-fit:contain;border-radius:calc(var(--rl) - 2px);}
+.poster-label{font-size:13px;color:var(--text3);}
+.poster-label strong{color:var(--g600);}
+.poster-del{position:absolute;top:8px;right:8px;background:var(--r600);color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;z-index:2;}
+#poster-file{display:none;}
+.uploading-indicator{font-size:12px;color:var(--a600);display:flex;align-items:center;gap:5px;}
+
+/* MODAL FOOTER */
+.modal-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid var(--border);background:var(--gray50);}
+.mbtn-cancel{background:none;border:1.5px solid var(--border);border-radius:var(--r);padding:9px 20px;cursor:pointer;font-family:var(--font);font-size:14px;color:var(--text2);}
+.mbtn-save{background:var(--g600);color:#fff;border:none;border-radius:var(--r);padding:9px 22px;cursor:pointer;font-family:var(--font);font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.mbtn-save:hover{background:var(--g800);}
+.mbtn-save:disabled{opacity:.5;cursor:not-allowed;}
+
+/* PERIOD MODAL */
+.sm-modal{background:var(--card);border-radius:var(--rl);padding:24px;max-width:380px;width:90%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.sm-modal h3{font-size:16px;font-weight:600;margin-bottom:16px;}
+.sm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.sm-fld{display:flex;flex-direction:column;gap:5px;}
+.sm-fld label{font-size:12px;color:var(--text2);}
+.sm-fld select,.sm-fld input{padding:8px 10px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:var(--font);color:var(--text);}
+.sm-actions{display:flex;gap:8px;justify-content:flex-end;}
+.sm-cancel{background:none;border:1.5px solid var(--border);border-radius:var(--r);padding:8px 18px;cursor:pointer;font-family:var(--font);font-size:13px;color:var(--text2);}
+.sm-ok{background:var(--g600);color:#fff;border:none;border-radius:var(--r);padding:8px 18px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;}
+
+/* PASS MODAL */
+.pm-field{margin-bottom:16px;}
+.pm-field label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;}
+.pm-field input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:14px;font-family:var(--font);}
+.pm-field input:focus{outline:none;border-color:var(--g400);}
+
+/* PERM BANNER */
+.perm-banner{background:var(--a50);border:1px solid #FAC775;border-radius:var(--rl);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--a600);}
+.perm-btn{background:var(--a600);color:#fff;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:var(--font);margin-left:auto;white-space:nowrap;}
+
+/* LOADING */
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid var(--gray100);border-top-color:var(--g400);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--g800);color:#fff;border-radius:var(--r);padding:12px 18px;font-size:13px;z-index:3000;transform:translateY(60px);opacity:0;transition:all .3s;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.2);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.err{background:var(--r600);}
+
+/* REALTIME BADGE */
+.rt-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--g400);background:var(--g50);border:1px solid var(--g100);border-radius:99px;padding:3px 10px;}
+.rt-dot{width:6px;height:6px;border-radius:50%;background:var(--g400);animation:blink 2s infinite;}
+
+@media(max-width:640px){.header-top{flex-wrap:wrap;}.view-badges{margin-left:0;}.main{padding:12px;}.modal-grid2{grid-template-columns:1fr;}}
 </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div class="box" id="loginBox">
-<h2>Login</h2>
-<input id="email" placeholder="email (admin@test.com)">
-<input id="password" type="password" placeholder="password">
-<button onclick="login()">Login</button>
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup" style="display:flex;" class="setup">
+  <div class="setup-card">
+    <div class="setup-logo">🌿</div>
+    <h1>ระบบยาสมุนไพร รพ.สต.</h1>
+    <p>เชื่อมต่อกับ Supabase เพื่อให้ข้อมูลซิงก์แบบ real-time ทุกคนในทีมเปิดได้จากลิงก์เดียวกัน</p>
+
+    <div class="step-box">
+      <h3>📋 ขั้นตอนตั้งค่า (ครั้งแรกครั้งเดียว)</h3>
+      <ol>
+        <li>สมัครฟรีที่ <a href="https://supabase.com" target="_blank">supabase.com</a> → กด <strong>Start your project</strong></li>
+        <li>กด <strong>New Project</strong> ตั้งชื่อ <code>herbal-db</code> และตั้ง Password</li>
+        <li>รอ ~2 นาที แล้วไปที่ <strong>SQL Editor</strong> ในเมนูซ้าย</li>
+        <li>วาง SQL ด้านล่างแล้วกด <strong>Run</strong></li>
+        <li>ไปที่ <strong>Project Settings → API</strong> แล้วคัดลอก <strong>URL</strong> และ <strong>anon key</strong></li>
+        <li>กรอกด้านล่างแล้วกดเชื่อมต่อ ✅</li>
+      </ol>
+      <div class="sql-box">
+        <pre id="sql-text">-- วางใน SQL Editor แล้วกด Run
+CREATE TABLE IF NOT EXISTS herbal_items (
+  id TEXT PRIMARY KEY,
+  period TEXT NOT NULL,
+  name TEXT,
+  carry NUMERIC DEFAULT 0,
+  recv NUMERIC DEFAULT 0,
+  dispense NUMERIC DEFAULT 0,
+  unit TEXT DEFAULT 'เม็ด',
+  benefits TEXT,
+  poster_url TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS herbal_headers (
+  period TEXT PRIMARY KEY,
+  carry_label TEXT DEFAULT 'ยอดยกมา',
+  recv_label TEXT DEFAULT 'รับเข้า'
+);
+
+-- เปิด Realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE herbal_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE herbal_headers;
+
+-- เปิดสิทธิ์อ่าน-เขียน (RLS off สำหรับทีมภายใน)
+ALTER TABLE herbal_items DISABLE ROW LEVEL SECURITY;
+ALTER TABLE herbal_headers DISABLE ROW LEVEL SECURITY;</pre>
+        <button class="copy-btn" onclick="copySQL()">📋 คัดลอก SQL</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Supabase Project URL</label>
+      <input type="url" id="sb-url" placeholder="https://xxxxxxxx.supabase.co">
+      <div class="field-hint">ได้จาก Project Settings → API → Project URL</div>
+    </div>
+    <div class="field-group">
+      <label>Supabase anon key</label>
+      <input type="text" id="sb-key" placeholder="eyJhbGciOiJIUzI1NiIs...">
+      <div class="field-hint">ได้จาก Project Settings → API → Project API Keys → anon public</div>
+    </div>
+    <div class="field-group">
+      <label>รหัสผ่านสำหรับแก้ไข (ไม่บังคับ)</label>
+      <input type="password" id="sb-pass" placeholder="ปล่อยว่างถ้าทุกคนแก้ไขได้">
+      <div class="field-hint">คนที่ไม่มีรหัสผ่านจะดูได้อย่างเดียว</div>
+    </div>
+    <button class="btn-main" onclick="connect()"><i class="ti ti-plug-connected"></i> เชื่อมต่อ Supabase</button>
+    <button class="btn-demo" onclick="startDemo()"><i class="ti ti-test-pipe"></i> ทดลองใช้งาน (ไม่บันทึกออนไลน์)</button>
+  </div>
 </div>
 
-<!-- APP -->
-<div class="box hidden" id="app">
-<h2>ระบบสมุนไพร</h2>
-<p id="info"></p>
-<button onclick="logout()">Logout</button>
+<!-- ===== MAIN APP ===== -->
+<div id="app" style="display:none;">
+  <div class="header">
+    <div class="header-top">
+      <div class="header-logo">
+        <div class="logo-icon">🌿</div>
+        <div>
+          <div class="header-title">กรอบรายการยาสมุนไพร</div>
+          <div class="header-sub">โรงพยาบาลส่งเสริมสุขภาพตำบลบ้านโนนยาง</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="sync-pill"><div class="sync-dot off" id="sdot"></div><span id="slabel">–</span></div>
+        <span class="rt-badge" id="rt-badge" style="display:none;"><div class="rt-dot"></div>Real-time</span>
+        <button class="hbtn" onclick="exportCSV()"><i class="ti ti-download"></i> CSV</button>
+        <button class="hbtn" onclick="window.print()"><i class="ti ti-printer"></i> พิมพ์</button>
+        <button class="hbtn" onclick="disconnectApp()" title="ตั้งค่า"><i class="ti ti-settings"></i></button>
+      </div>
+    </div>
+    <div class="period-bar">
+      <span class="pbar-label">เดือน/ปี :</span>
+      <div class="period-ctrl">
+        <button class="pbtn" onclick="shiftPeriod(-1)">‹</button>
+        <button class="pdisplay" onclick="openPeriodModal()" id="pdisplay">–</button>
+        <button class="pbtn" onclick="shiftPeriod(1)">›</button>
+      </div>
+      <div class="view-badges">
+        <button class="vbadge" id="vmonth" onclick="setView('month')">รายเดือน</button>
+        <button class="vbadge" id="vyear" onclick="setView('year')">รายปี</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="perm-banner" class="perm-banner" style="display:none;">
+      <i class="ti ti-lock"></i>
+      <span>คุณอยู่ในโหมด <strong>ดูอย่างเดียว</strong></span>
+      <button class="perm-btn" onclick="openPassModal()">ใส่รหัสผ่านเพื่อแก้ไข</button>
+    </div>
+    <div class="summary-grid" id="summary"></div>
+    <div class="toolbar">
+      <div class="srch"><i class="ti ti-search"></i><input type="text" id="search" placeholder="ค้นหาชื่อยา..." oninput="renderTable()"></div>
+      <select class="fsel" id="sfilter" onchange="renderTable()">
+        <option value="all">ทุกสถานะ</option>
+        <option value="ok">ปกติ</option>
+        <option value="low">ใกล้หมด</option>
+        <option value="out">หมด</option>
+      </select>
+      <button class="tbtn" onclick="loadData()"><i class="ti ti-refresh"></i> รีเฟรช</button>
+      <button class="tbtn green" id="btn-add" onclick="addRow()" disabled><i class="ti ti-plus"></i> เพิ่มรายการ</button>
+    </div>
+    <div class="table-wrap" id="tbl-wrap">
+      <div class="loading-wrap"><div class="spinner"></div><div style="color:var(--text3);font-size:14px;">กำลังโหลด...</div></div>
+    </div>
+    <!-- HISTORY -->
+    <div class="hpanel">
+      <div class="hpanel-head" onclick="toggleHistory()">
+        <h3><i class="ti ti-history"></i> ประวัติข้อมูลย้อนหลัง</h3>
+        <i class="ti ti-chevron-down htog" id="htog"></i>
+      </div>
+      <div class="hbody" id="hbody"></div>
+    </div>
+  </div>
 </div>
+
+<!-- PERIOD MODAL -->
+<div class="overlay" id="period-modal">
+  <div class="sm-modal">
+    <h3>เลือกเดือน / ปี</h3>
+    <div class="sm-grid">
+      <div class="sm-fld"><label>เดือน</label>
+        <select id="pm-month">
+          <option value="1">มกราคม</option><option value="2">กุมภาพันธ์</option><option value="3">มีนาคม</option>
+          <option value="4">เมษายน</option><option value="5">พฤษภาคม</option><option value="6">มิถุนายน</option>
+          <option value="7">กรกฎาคม</option><option value="8">สิงหาคม</option><option value="9">กันยายน</option>
+          <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+        </select>
+      </div>
+      <div class="sm-fld"><label>ปี (พ.ศ.)</label><input type="number" id="pm-year" value="2569" min="2560" max="2590"></div>
+    </div>
+    <div class="sm-actions">
+      <button class="sm-cancel" onclick="closePM()">ยกเลิก</button>
+      <button class="sm-ok" onclick="confirmPM()">ตกลง</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASS MODAL -->
+<div class="overlay" id="pass-modal">
+  <div class="sm-modal">
+    <h3><i class="ti ti-lock"></i> รหัสผ่านผู้แก้ไข</h3>
+    <div class="pm-field"><label>รหัสผ่าน</label><input type="password" id="pass-in" onkeydown="if(event.key==='Enter')confirmPass()"></div>
+    <div class="sm-actions">
+      <button class="sm-cancel" onclick="closePassModal()">ยกเลิก</button>
+      <button class="sm-ok" onclick="confirmPass()">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="detail-title">รายละเอียดยา</h2>
+      <button class="mclose" onclick="closeDetail()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="mfield"><label>ชื่อยาสมุนไพร</label><input type="text" id="d-name" placeholder="ชื่อยา"></div>
+      <div class="modal-grid2">
+        <div class="mfield"><label>ยอดยกมา</label><input type="number" id="d-carry" min="0"></div>
+        <div class="mfield"><label>รับเข้า</label><input type="number" id="d-recv" min="0"></div>
+        <div class="mfield"><label>จ่ายออก</label><input type="number" id="d-dispense" min="0"></div>
+        <div class="mfield"><label>หน่วย</label>
+          <select id="d-unit">
+            <option>เม็ด</option><option>ขวด</option><option>ซอง</option><option>ตลับ</option>
+            <option>แคปซูล</option><option>ห่อ</option><option>ท่อ</option><option>ชิ้น</option>
+          </select>
+        </div>
+      </div>
+      <div class="mfield">
+        <label>สรรพคุณ / ข้อบ่งชี้</label>
+        <textarea id="d-benefits" placeholder="เช่น ลดการอักเสบ บรรเทาอาการปวด ฯลฯ"></textarea>
+      </div>
+      <div class="mfield">
+        <label>โปสเตอร์ยา</label>
+        <div class="poster-area" id="poster-area" onclick="triggerFileInput()">
+          <img id="poster-preview" src="" alt="โปสเตอร์" style="display:none;">
+          <div id="poster-placeholder">
+            <i class="ti ti-photo-up" style="font-size:32px;color:var(--text3);"></i>
+            <div class="poster-label">คลิกเพื่ออัปโหลดรูปโปสเตอร์<br><strong>PNG, JPG ขนาดไม่เกิน 5MB</strong></div>
+          </div>
+          <button class="poster-del" id="poster-del" style="display:none;" onclick="event.stopPropagation();removePoster()"><i class="ti ti-trash"></i> ลบรูป</button>
+        </div>
+        <input type="file" id="poster-file" accept="image/*" onchange="handlePosterFile(event)">
+        <div class="uploading-indicator" id="upload-indicator" style="display:none;margin-top:6px;"><div class="spinner" style="width:14px;height:14px;border-width:2px;"></div> กำลังอัปโหลด...</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="mbtn-cancel" onclick="closeDetail()">ยกเลิก</button>
+      <button class="mbtn-save" id="d-save" onclick="saveDetail()"><i class="ti ti-device-floppy"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = "https://yazocgdmovtlyvaqupkm.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlhem9jZ2Rtb3Z0bHl2YXF1cGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDA3MjQsImV4cCI6MjA5ODU3NjcyNH0.CFky0oKlzfK1ANPmRjQBpWC8JGfWRec9OKimzwbyEjg";
+// =========================================================
+// CONSTANTS
+// =========================================================
+const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const MS=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const UNITS=['เม็ด','ขวด','ซอง','ตลับ','แคปซูล','ห่อ','ท่อ','ชิ้น'];
+const DEMO=[
+  {id:'d1',name:'ขมิ้นชัน ๕๐๐ มก.',carry:600,recv:620,dispense:420,unit:'เม็ด',benefits:'ลดการอักเสบ บรรเทาอาการท้องอืด',poster_url:''},
+  {id:'d2',name:'คาลาไมน์พญายอ ๖๐ มล.',carry:9,recv:20,dispense:17,unit:'ขวด',benefits:'บรรเทาอาการผื่นคัน แมลงสัตว์กัดต่อย',poster_url:''},
+  {id:'d3',name:'น้ำมันผสมไพร',carry:25,recv:66,dispense:66,unit:'ขวด',benefits:'บรรเทาปวดเมื่อย',poster_url:''},
+  {id:'d4',name:'พยายอครีม',carry:17,recv:0,dispense:3,unit:'ตลับ',benefits:'รักษาแผล ลดการอักเสบ',poster_url:''},
+  {id:'d5',name:'ฟ้าทะลายโจร',carry:1260,recv:860,dispense:660,unit:'แคปซูล',benefits:'ต้านเชื้อไวรัส ลดไข้ บรรเทาอาการหวัด',poster_url:''},
+  {id:'d6',name:'ยาธาตุอุบเชีย ๑๖๐ มล./ขวด',carry:57,recv:58,dispense:57,unit:'ขวด',benefits:'แก้ท้องเสีย ปรับธาตุ',poster_url:''},
+  {id:'d7',name:'ยาประสะมะแว้ง ๒๐๐ มก.',carry:1,recv:0,dispense:0,unit:'เม็ด',benefits:'บรรเทาอาการไอ ขับเสมหะ',poster_url:''},
+  {id:'d8',name:'ยาระบายมะขามแขก',carry:650,recv:1000,dispense:360,unit:'เม็ด',benefits:'ระบาย แก้ท้องผูก',poster_url:''},
+  {id:'d9',name:'ยาหอมนวโกฐ',carry:1,recv:0,dispense:0,unit:'ขวด',benefits:'บำรุงหัวใจ แก้ลมวิงเวียน',poster_url:''},
+  {id:'d10',name:'ยาแก้ไอน้ำต้ามะขามป้อม',carry:54,recv:50,dispense:33,unit:'ขวด',benefits:'แก้ไอ บรรเทาเจ็บคอ',poster_url:''},
+  {id:'d11',name:'ลูกประคบ',carry:1,recv:30,dispense:13,unit:'ท่อ',benefits:'บรรเทาปวดเมื่อย ผ่อนคลายกล้ามเนื้อ',poster_url:''},
+  {id:'d12',name:'เถาวัลย์เปรียงแคปซูล',carry:460,recv:760,dispense:650,unit:'เม็ด',benefits:'แก้ปวดข้อ บรรเทาอาการอักเสบ',poster_url:''},
+  {id:'d13',name:'เพชรสังฆาต ๒๕๐ มก.',carry:450,recv:100,dispense:70,unit:'เม็ด',benefits:'บรรเทาปวดข้อ ข้อเสื่อม',poster_url:''},
+];
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// =========================================================
+// STATE
+// =========================================================
+let sb=null, isDemo=false, canEdit=false, editPass='';
+let curM=6, curY=2569, viewMode='month';
+let items=[], headers={carry_label:'ยอดยกมา',recv_label:'รับเข้า'};
+let allPeriods=[];
+let detailId=null, pendingPosterUrl=null, pendingPosterFile=null;
+let saveTimers={};
+let realtimeCh=null;
 
-let currentUser = null;
-
-async function login(){
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-
-  const { data, error } = await sb.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if(error){
-    alert("Login ไม่สำเร็จ");
-    return;
-  }
-
-  currentUser = data.user;
-
-  document.getElementById("loginBox").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-
-  document.getElementById("info").innerText =
-    "เข้าสู่ระบบ: " + currentUser.email;
+// =========================================================
+// SETUP
+// =========================================================
+function copySQL(){
+  const t=document.getElementById('sql-text').textContent;
+  navigator.clipboard.writeText(t).then(()=>toast('📋 คัดลอก SQL แล้ว'));
 }
 
-async function logout(){
-  await sb.auth.signOut();
+async function connect(){ sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY); startApp(); }
+
+function startDemo(){
+  isDemo=true; canEdit=true;
+  items=DEMO.map(r=>({...r}));
+  headers={carry_label:'พ.ค. ๖๙',recv_label:'มิ.ย. ๖๙'};
+  startApp();
+}
+
+function startApp(){
+  document.getElementById('setup').style.display='none';
+  document.getElementById('app').style.display='block';
+  if(!canEdit && editPass) document.getElementById('perm-banner').style.display='flex';
+  updatePD(); loadData();
+  if(!isDemo) setupRealtime();
+}
+
+function disconnectApp(){
+  if(!confirm('ยกเลิกการเชื่อมต่อ?'))return;
+  localStorage.removeItem('sb_url');localStorage.removeItem('sb_key');
+  if(realtimeCh) sb.removeChannel(realtimeCh);
   location.reload();
 }
-</script>
 
+// Auto-reconnect
+(function(){ sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY); startApp(); })();
+
+// =========================================================
+// REALTIME
+// =========================================================
+function setupRealtime(){
+  if(realtimeCh) sb.removeChannel(realtimeCh);
+  realtimeCh=sb.channel('herbal-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'herbal_items'},(payload)=>{
+      const pk=payload.new?.period||payload.old?.period;
+      if(pk===curPK()) loadData(true);
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'herbal_headers'},(payload)=>{
+      if(payload.new?.period===curPK()) loadData(true);
+    })
+    .subscribe((status)=>{
+      if(status==='SUBSCRIBED'){
+        setSyncStatus('ok','Real-time เชื่อมแล้ว');
+        document.getElementById('rt-badge').style.display='inline-flex';
+      }
+    });
+}
+
+// =========================================================
+// LOAD DATA
+// =========================================================
+async function loadData(silent=false){
+  if(!silent){
+    setSyncStatus('pulse','กำลังโหลด...');
+    if(!items.length) document.getElementById('tbl-wrap').innerHTML=`<div class="loading-wrap"><div class="spinner"></div><div style="color:var(--text3);font-size:14px;">กำลังโหลดข้อมูล...</div></div>`;
+  }
+  if(isDemo){renderAll();return;}
+  try{
+    const pk=curPK();
+    const[ir,hr,pr]=await Promise.all([
+      sb.from('herbal_items').select('*').eq('period',pk).order('updated_at',{ascending:true}),
+      sb.from('herbal_headers').select('*').eq('period',pk).single(),
+      sb.from('herbal_items').select('period').neq('period','x')
+    ]);
+    if(ir.error&&ir.error.code!=='PGRST116') throw ir.error;
+    items=(ir.data||[]).map(r=>({...r,carry:+r.carry||0,recv:+r.recv||0,dispense:+r.dispense||0}));
+    headers=hr.data||{carry_label:'ยอดยกมา',recv_label:'รับเข้า'};
+    // Carry-forward if new period
+    if(!items.length) await carryForward(pk);
+    // All periods
+    const ps=[...new Set((pr.data||[]).map(r=>r.period))].sort();
+    allPeriods=ps;
+    setSyncStatus('ok','อัปเดต '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
+    renderAll();
+  }catch(e){
+    setSyncStatus('err','โหลดไม่สำเร็จ');
+    toast('โหลดไม่สำเร็จ: '+e.message,'err');
+    document.getElementById('tbl-wrap').innerHTML=`<div class="loading-wrap" style="color:var(--r600)"><i class="ti ti-alert-circle" style="font-size:32px"></i><div style="font-size:14px">เชื่อมต่อไม่ได้<br><small>${e.message}</small></div><button class="tbtn" onclick="loadData()" style="margin-top:8px"><i class="ti ti-refresh"></i> ลองใหม่</button></div>`;
+  }
+}
+
+async function carryForward(pk){
+  // Find prev period
+  let pm=curM-1,py=curY;
+  if(viewMode==='year'){py=curY-1;}
+  else{if(pm<1){pm=12;py=curY-1;}}
+  const ppk=viewMode==='year'?`year-${py}`:`${py}-${String(pm).padStart(2,'0')}`;
+  const{data}=await sb.from('herbal_items').select('*').eq('period',ppk);
+  if(data&&data.length){
+    const rows=data.map(r=>({
+      id:'r'+Date.now()+Math.random().toString(36).slice(2,6),
+      period:pk, name:r.name,
+      carry:Math.max(0,(+r.carry||0)+(+r.recv||0)-(+r.dispense||0)),
+      recv:0, dispense:0, unit:r.unit,
+      benefits:r.benefits||'', poster_url:r.poster_url||''
+    }));
+    await sb.from('herbal_items').insert(rows);
+    const{data:d2}=await sb.from('herbal_items').select('*').eq('period',pk);
+    items=(d2||[]).map(r=>({...r,carry:+r.carry||0,recv:+r.recv||0,dispense:+r.dispense||0}));
+    toast('📋 คัดลอกยอดยกมาจากเดือนก่อนแล้ว');
+  }
+}
+
+// =========================================================
+// SAVE
+// =========================================================
+function schedSave(id){clearTimeout(saveTimers[id]);saveTimers[id]=setTimeout(()=>saveRow(id),700);}
+
+async function saveRow(id){
+  if(isDemo) return;
+  const r=items.find(x=>x.id===id);
+  if(!r) return;
+  const tr=document.querySelector(`tr[data-id="${id}"]`);
+  if(tr) tr.classList.add('saving');
+  try{
+    const{error}=await sb.from('herbal_items').upsert({
+      id:r.id, period:curPK(), name:r.name,
+      carry:r.carry, recv:r.recv, dispense:r.dispense, unit:r.unit,
+      benefits:r.benefits||'', poster_url:r.poster_url||'',
+      updated_at:new Date().toISOString()
+    });
+    if(error) throw error;
+    setSyncStatus('ok','บันทึกแล้ว '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){toast('บันทึกไม่สำเร็จ: '+e.message,'err');setSyncStatus('err','บันทึกไม่สำเร็จ');}
+  if(tr) tr.classList.remove('saving');
+}
+
+async function saveHeaders(){
+  if(isDemo||!canEdit) return;
+  await sb.from('herbal_headers').upsert({period:curPK(),carry_label:headers.carry_label,recv_label:headers.recv_label});
+}
+
+// =========================================================
+// MUTATIONS
+// =========================================================
+function updateField(id,field,val){
+  const r=items.find(x=>x.id===id);
+  if(!r||!canEdit) return;
+  r[field]=field==='name'||field==='unit'?val:(+val||0);
+  if(field!=='name'&&field!=='unit'){
+    const b=balance(r),s=statusOf(r);
+    const bc=document.querySelector(`tr[data-id="${id}"] .bal-cell`);
+    const bs=document.querySelector(`tr[data-id="${id}"] .sbadge`);
+    if(bc){bc.textContent=b.toLocaleString();bc.className=`bal-cell bal-${s}`;}
+    if(bs){bs.textContent=slabel(s);bs.className=`badge b${s} sbadge`;}
+    renderSummary();renderFoot();
+  }
+  schedSave(id);
+}
+
+async function addRow(){
+  if(!canEdit) return;
+  const id='r'+Date.now();
+  const nr={id,period:curPK(),name:'ยาสมุนไพรใหม่',carry:0,recv:0,dispense:0,unit:'เม็ด',benefits:'',poster_url:''};
+  items.push(nr);
+  if(!isDemo){
+    const{error}=await sb.from('herbal_items').insert({...nr,updated_at:new Date().toISOString()});
+    if(error){toast('เพิ่มไม่สำเร็จ: '+error.message,'err');items.pop();return;}
+  }
+  renderAll();toast('✅ เพิ่มรายการแล้ว');
+  // Open detail
+  openDetail(id);
+}
+
+async function delRow(id){
+  if(!canEdit||!confirm('ลบรายการนี้?')) return;
+  items=items.filter(r=>r.id!==id);
+  renderAll();
+  if(!isDemo){
+    const{error}=await sb.from('herbal_items').delete().eq('id',id);
+    if(error) toast('ลบไม่สำเร็จ','err');
+    else toast('🗑️ ลบแล้ว');
+  } else toast('🗑️ ลบแล้ว');
+}
+
+// =========================================================
+// DETAIL MODAL
+// =========================================================
+function openDetail(id){
+  const r=items.find(x=>x.id===id);
+  if(!r) return;
+  detailId=id; pendingPosterUrl=r.poster_url||''; pendingPosterFile=null;
+  document.getElementById('d-name').value=r.name;
+  document.getElementById('d-carry').value=r.carry;
+  document.getElementById('d-recv').value=r.recv;
+  document.getElementById('d-dispense').value=r.dispense;
+  document.getElementById('d-unit').value=r.unit;
+  document.getElementById('d-benefits').value=r.benefits||'';
+  document.getElementById('detail-title').textContent=r.name||'รายละเอียดยา';
+  setPosterPreview(r.poster_url||'');
+  const dis=!canEdit;
+  ['d-name','d-carry','d-recv','d-dispense','d-unit','d-benefits'].forEach(x=>{document.getElementById(x).disabled=dis;});
+  document.getElementById('d-save').disabled=dis;
+  document.getElementById('poster-area').style.cursor=dis?'default':'pointer';
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeDetail(){document.getElementById('detail-modal').classList.remove('open');detailId=null;}
+
+async function saveDetail(){
+  if(!detailId||!canEdit) return;
+  const r=items.find(x=>x.id===detailId);
+  if(!r) return;
+  const btn=document.getElementById('d-save');
+  btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2" style="animation:spin .6s linear infinite"></i> กำลังบันทึก...';
+
+  // Upload poster if pending
+  let posterUrl=pendingPosterUrl;
+  if(pendingPosterFile&&!isDemo){
+    try{
+      document.getElementById('upload-indicator').style.display='flex';
+      const ext=pendingPosterFile.name.split('.').pop();
+      const path=`posters/${detailId}.${ext}`;
+      const{error:ue}=await sb.storage.from('herbal-posters').upload(path,pendingPosterFile,{upsert:true});
+      if(ue) throw ue;
+      const{data}=sb.storage.from('herbal-posters').getPublicUrl(path);
+      posterUrl=data.publicUrl;
+      document.getElementById('upload-indicator').style.display='none';
+    }catch(e){toast('อัปโหลดรูปไม่สำเร็จ: '+e.message,'err');document.getElementById('upload-indicator').style.display='none';}
+  }
+
+  r.name=document.getElementById('d-name').value;
+  r.carry=+document.getElementById('d-carry').value||0;
+  r.recv=+document.getElementById('d-recv').value||0;
+  r.dispense=+document.getElementById('d-dispense').value||0;
+  r.unit=document.getElementById('d-unit').value;
+  r.benefits=document.getElementById('d-benefits').value;
+  r.poster_url=posterUrl;
+
+  await saveRow(detailId);
+  renderAll();
+  closeDetail();
+  toast('✅ บันทึกแล้ว');
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-device-floppy"></i> บันทึก';
+}
+
+// =========================================================
+// POSTER
+// =========================================================
+function triggerFileInput(){if(canEdit) document.getElementById('poster-file').click();}
+function handlePosterFile(e){
+  const f=e.target.files[0];
+  if(!f) return;
+  if(f.size>5*1024*1024){toast('ไฟล์ใหญ่เกิน 5MB','err');return;}
+  pendingPosterFile=f;
+  const url=URL.createObjectURL(f);
+  pendingPosterUrl=url;
+  setPosterPreview(url);
+}
+function setPosterPreview(url){
+  const img=document.getElementById('poster-preview');
+  const ph=document.getElementById('poster-placeholder');
+  const del=document.getElementById('poster-del');
+  const area=document.getElementById('poster-area');
+  if(url){img.src=url;img.style.display='block';ph.style.display='none';del.style.display=canEdit?'block':'none';area.classList.add('has-img');}
+  else{img.src='';img.style.display='none';ph.style.display='flex';del.style.display='none';area.classList.remove('has-img');}
+}
+function removePoster(){pendingPosterUrl='';pendingPosterFile=null;setPosterPreview('');}
+
+// =========================================================
+// RENDER
+// =========================================================
+function renderAll(){renderSummary();buildTable();renderHistory();}
+function renderTable(){renderBody();renderFoot();}
+
+function renderSummary(){
+  const tot=items.length,out=items.filter(r=>statusOf(r)==='out').length,low=items.filter(r=>statusOf(r)==='low').length;
+  const tb=items.reduce((s,r)=>s+balance(r),0),td=items.reduce((s,r)=>s+(r.dispense||0),0);
+  document.getElementById('summary').innerHTML=`
+    <div class="stat"><div class="lbl">รายการยา</div><div class="val cb">${tot}</div><div class="sub" style="color:var(--text3)">รายการ</div></div>
+    <div class="stat"><div class="lbl">คงเหลือรวม</div><div class="val cg">${tb.toLocaleString()}</div><div class="sub cg">หน่วย</div></div>
+    <div class="stat"><div class="lbl">จ่ายออกรวม</div><div class="val cb">${td.toLocaleString()}</div><div class="sub" style="color:var(--text3)">หน่วย</div></div>
+    <div class="stat"><div class="lbl">ใกล้หมด</div><div class="val ca">${low}</div><div class="sub ca">รายการ</div></div>
+    <div class="stat"><div class="lbl">หมดสต็อก</div><div class="val cr">${out}</div><div class="sub cr">รายการ</div></div>`;
+}
+
+function buildTable(){
+  const dis=!canEdit;
+  document.getElementById('tbl-wrap').innerHTML=`<table>
+    <thead><tr>
+      <th style="width:44px;">ลำดับ</th>
+      <th class="tl" style="min-width:200px;">ชื่อยาสมุนไพร</th>
+      <th style="width:85px;">ยอดยกมา<br><input class="th-in" id="th-carry" value="${esc(headers.carry_label)}" ${dis?'disabled':''} onchange="headers.carry_label=this.value;saveHeaders()"></th>
+      <th style="width:85px;">รับ<br><input class="th-in" id="th-recv" value="${esc(headers.recv_label)}" ${dis?'disabled':''} onchange="headers.recv_label=this.value;saveHeaders()"></th>
+      <th style="width:80px;">จ่าย</th>
+      <th style="width:85px;">คงเหลือ</th>
+      <th style="width:85px;">หน่วย</th>
+      <th style="width:75px;">สถานะ</th>
+      <th style="width:80px;">รายละเอียด</th>
+      <th style="width:44px;"></th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+    <tfoot id="tfoot"></tfoot>
+  </table>`;
+  if(canEdit) document.getElementById('btn-add').disabled=false;
+  renderBody(); renderFoot();
+}
+
+function renderBody(){
+  const q=(document.getElementById('search')||{}).value||'';
+  const sf=(document.getElementById('sfilter')||{}).value||'all';
+  const filtered=items.filter(r=>{
+    if(q&&!r.name.toLowerCase().includes(q.toLowerCase())) return false;
+    if(sf!=='all'&&statusOf(r)!==sf) return false;
+    return true;
+  });
+  const tbody=document.getElementById('tbody');if(!tbody)return;
+  const dis=!canEdit;
+  if(!filtered.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--text3)">ไม่พบรายการ</td></tr>`;return;}
+  tbody.innerHTML=filtered.map((r,i)=>{
+    const b=balance(r),s=statusOf(r);
+    const uopts=UNITS.map(u=>`<option${u===r.unit?' selected':''}>${u}</option>`).join('');
+    const posterIcon=r.poster_url?`<i class="ti ti-photo" style="color:var(--g400);font-size:14px;" title="มีโปสเตอร์"></i>`:'';
+    return`<tr data-id="${r.id}">
+      <td class="rno">${i+1}</td>
+      <td class="tl"><input class="nin" value="${esc(r.name)}" ${dis?'disabled':''} onchange="updateField('${r.id}','name',this.value)"></td>
+      <td><input class="cin" type="number" min="0" value="${r.carry}" ${dis?'disabled':''} onchange="updateField('${r.id}','carry',this.value)"></td>
+      <td><input class="cin" type="number" min="0" value="${r.recv}" ${dis?'disabled':''} onchange="updateField('${r.id}','recv',this.value)"></td>
+      <td><input class="cin" type="number" min="0" value="${r.dispense}" ${dis?'disabled':''} onchange="updateField('${r.id}','dispense',this.value)"></td>
+      <td class="bal-cell bal-${s}">${b.toLocaleString()}</td>
+      <td><select class="usel" ${dis?'disabled':''} onchange="updateField('${r.id}','unit',this.value)">${uopts}</select></td>
+      <td><span class="badge b${s} sbadge">${slabel(s)}</span></td>
+      <td><button class="detail-btn" onclick="openDetail('${r.id}')" title="ดูรายละเอียด/โปสเตอร์">${posterIcon}<i class="ti ti-eye"></i></button></td>
+      <td><button class="dbtn" ${dis?'disabled':''} onclick="delRow('${r.id}')"><i class="ti ti-trash"></i></button></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderFoot(){
+  const tf=document.getElementById('tfoot');if(!tf)return;
+  const tc=items.reduce((s,r)=>s+(r.carry||0),0),tr2=items.reduce((s,r)=>s+(r.recv||0),0);
+  const td=items.reduce((s,r)=>s+(r.dispense||0),0),tb=items.reduce((s,r)=>s+balance(r),0);
+  tf.innerHTML=`<tr><td></td><td class="tl">รวมทั้งหมด</td><td>${tc.toLocaleString()}</td><td>${tr2.toLocaleString()}</td><td>${td.toLocaleString()}</td><td>${tb.toLocaleString()}</td><td colspan="4"></td></tr>`;
+}
+
+// =========================================================
+// HISTORY
+// =========================================================
+function toggleHistory(){
+  const b=document.getElementById('hbody'),t=document.getElementById('htog');
+  b.classList.toggle('open');t.classList.toggle('open');
+  if(b.classList.contains('open'))renderHistory();
+}
+function renderHistory(){
+  const b=document.getElementById('hbody');if(!b.classList.contains('open'))return;
+  const ck=curPK();
+  const keys=[...new Set([...allPeriods,ck])].sort().reverse();
+  if(!keys.length){b.innerHTML=`<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">ยังไม่มีข้อมูลย้อนหลัง</div>`;return;}
+  b.innerHTML=`<div class="hgrid">${keys.map(k=>{
+    const lbl=k.startsWith('year-')?`ปีงบ ${k.replace('year-','')}`:fmtKey(k);
+    const isCur=k===ck;
+    return`<div class="hitem${isCur?' cur':''}" onclick="jumpTo('${k}')">
+      <div class="hip">${lbl}</div>
+      <div class="hic">${isCur?items.length+' รายการ':'คลิกเพื่อดู'}</div>
+      <div class="hit">${isCur?'คงเหลือ '+items.reduce((s,r)=>s+balance(r),0).toLocaleString():'–'}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function fmtKey(k){if(k.startsWith('year-'))return'ปีงบ '+k.replace('year-','');const[y,m]=k.split('-');return MS[+m-1]+' '+y;}
+function jumpTo(k){
+  if(k.startsWith('year-')){viewMode='year';curY=+k.replace('year-','');}
+  else{viewMode='month';const[y,m]=k.split('-');curY=+y;curM=+m;}
+  updatePD();loadData();
+}
+
+// =========================================================
+// PERIOD
+// =========================================================
+function curPK(){return viewMode==='year'?`year-${curY}`:`${curY}-${String(curM).padStart(2,'0')}`;}
+function periodStr(){return viewMode==='year'?`ปีงบประมาณ ${curY}`:`${MONTHS[curM-1]} ${curY}`;}
+function updatePD(){
+  document.getElementById('pdisplay').textContent=periodStr();
+  document.getElementById('vmonth').className='vbadge'+(viewMode==='month'?' on':'');
+  document.getElementById('vyear').className='vbadge'+(viewMode==='year'?' on':'');
+}
+function shiftPeriod(d){
+  if(viewMode==='year'){curY+=d;}
+  else{curM+=d;if(curM>12){curM=1;curY++;}if(curM<1){curM=12;curY--;}}
+  updatePD();loadData();
+}
+function setView(m){viewMode=m;updatePD();loadData();}
+function openPeriodModal(){document.getElementById('pm-month').value=curM;document.getElementById('pm-year').value=curY;document.getElementById('period-modal').classList.add('open');}
+function closePM(){document.getElementById('period-modal').classList.remove('open');}
+function confirmPM(){curM=+document.getElementById('pm-month').value;curY=+document.getElementById('pm-year').value;closePM();updatePD();loadData();}
+
+// =========================================================
+// PASSWORD
+// =========================================================
+function openPassModal(){document.getElementById('pass-modal').classList.add('open');setTimeout(()=>document.getElementById('pass-in').focus(),100);}
+function closePassModal(){document.getElementById('pass-modal').classList.remove('open');}
+function confirmPass(){
+  const p=document.getElementById('pass-in').value;
+  if(p===editPass){
+    canEdit=true; editPass=p;
+    document.getElementById('perm-banner').style.display='none';
+    document.getElementById('btn-add').disabled=false;
+    closePassModal(); renderAll(); toast('✅ เข้าสู่โหมดแก้ไขแล้ว');
+  } else { toast('รหัสผ่านไม่ถูกต้อง','err'); }
+}
+
+// =========================================================
+// SYNC STATUS
+// =========================================================
+function setSyncStatus(state,lbl){
+  const d=document.getElementById('sdot'),l=document.getElementById('slabel');
+  d.className='sync-dot'+(state==='ok'?' ':state==='pulse'?' pulse ':' err ').trimEnd();
+  if(state==='ok') d.className='sync-dot';
+  else if(state==='pulse') d.className='sync-dot pulse';
+  else d.className='sync-dot err';
+  l.textContent=lbl;
+}
+
+// =========================================================
+// EXPORT
+// =========================================================
+function exportCSV(){
+  const rows=[['ลำดับ','ชื่อยาสมุนไพร',headers.carry_label,headers.recv_label,'จ่าย','คงเหลือ','หน่วย','สถานะ','สรรพคุณ']];
+  items.forEach((r,i)=>rows.push([i+1,r.name,r.carry,r.recv,r.dispense,balance(r),r.unit,slabel(statusOf(r)),r.benefits||'']));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`ยาสมุนไพร_${periodStr()}.csv`;a.click();
+}
+
+// =========================================================
+// HELPERS
+// =========================================================
+function balance(r){return Math.max(0,(r.carry||0)+(r.recv||0)-(r.dispense||0));}
+function statusOf(r){const b=balance(r);if(b<=0)return'out';const t=(r.carry||0)+(r.recv||0);return t>0&&b/t<0.2?'low':'ok';}
+function slabel(s){return s==='ok'?'ปกติ':s==='low'?'ใกล้หมด':'หมด';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+let toastT;
+function toast(msg,type=''){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast',3000);
+}
+</script>
 </body>
 </html>
